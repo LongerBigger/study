@@ -34,6 +34,35 @@ public class 跳跃游戏II45 {
         return result;
     }
 
+    public int jumpMy(int[] nums) {
+        int target = nums.length - 1;
+        // next表示下一步跳到的下标
+        int next = 0;
+        int r = 0;
+        for (int i = 0; i < target; i = next) {
+
+            next = i;
+            // 找到下一步能跳最远的点，包含当前这一步
+            for (int j = 1; j <= nums[i]; j++) {
+                // 数组下标一定要看看会不会越界
+                if (i + j >= target) {
+                    r++;
+                    return r;
+                }
+                // 如果这个条件不进来，说明无法往前跳了，不能到达终点，与题设不符
+                if (i + j + nums[i + j] > next + nums[next]) {
+                    next = i + j;
+                }
+            }
+            r++;
+            if (next >= target) {
+                // 到终点了
+                break;
+            }
+        }
+
+        return r;
+    }
 
     public int jump(int[] nums) {
         if (nums.length == 0) {
@@ -74,7 +103,8 @@ public class 跳跃游戏II45 {
     }
 
     public static void main(String[] args) {
-        int[] nums = {2, 3, 1, 1, 4};
-        System.out.println(new 跳跃游戏II45().jumpmY(nums));
+//        int[] nums = {2, 3, 1, 1, 4};
+        int[] nums = {1,2,3,4,5};
+        System.out.println(new 跳跃游戏II45().jumpMy(nums));
     }
 }
