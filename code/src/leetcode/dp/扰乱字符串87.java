@@ -1,6 +1,5 @@
 package leetcode.dp;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,9 +41,21 @@ public class 扰乱字符串87 {
         }
 //        System.out.println("ss1:" + ss1 + " ss2:" + ss2);
         // 统计词频
-        if (!charFrqeuenceEqual(s1, s2, i, j, n, freqDp)) {
-            return false;
+        int[] charCount = new int[26];
+        for (char c1 : s1.toCharArray()) {
+            charCount[c1 - 'a']++;
         }
+        for (char c2 : s2.toCharArray()) {
+            charCount[c2 - 'a']--;
+        }
+        for (int count : charCount) {
+            if (count != 0) {
+                return false;
+            }
+        }
+//        if (!charFrqeuenceEqual(s1, s2, i, j, n, freqDp)) {
+//            return false;
+//        }
 
         boolean r = false;
         // 遍历切分点
@@ -95,13 +106,12 @@ public class 扰乱字符串87 {
             for (int j = 0; j < n; j++) {
                 dp[i][j][1] = s1.charAt(i) == s2.charAt(j);
             }
-//            System.out.println(Arrays.toString(dp[i]));
         }
         // 遍历算出所有的dp值
         // 注意遍历顺序，应该是以从k=2遍历到k=n
         for (int k = 2; k <= n; k++) {
-            for (int i = 0; i <= n-k; i++) {
-                for (int j = 0; j <= n-k; j++) {
+            for (int i = 0; i <= n - k; i++) {
+                for (int j = 0; j <= n - k; j++) {
                     for (int h = 1; h < k; h++) {
                         dp[i][j][k] |= dp[i][j][h] && dp[i + h][j + h][k - h]
                                 || dp[i][j + k - h][h] && dp[i + h][j][k - h];
@@ -109,12 +119,6 @@ public class 扰乱字符串87 {
                 }
             }
         }
-//        for (int i = 0; i < n; i++) {
-//            for (int j = 0; j < n; j++) {
-//                System.out.println("i:" + i + ",j:" + j + Arrays.toString(dp[i][j]));
-//            }
-//        }
-
 
         return dp[0][0][n];
     }
