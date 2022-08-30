@@ -1,9 +1,11 @@
 package leetcode.dp;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 public class 扰乱字符串87 {
+
 
     public boolean isScramble(String s1, String s2) {
 
@@ -23,40 +25,52 @@ public class 扰乱字符串87 {
         //   b.遍历切分点
         //   c.计算每一个切分点
         //   d.将每一个切分点的结果组合成原问题的解
-
-        return f(s1, s2, 0, 0, s1.length());
+        boolean[][][] dp = new boolean[s1.length()][s1.length()][s1.length() + 1];
+        boolean[][][] freqDp = new boolean[s1.length()][s1.length()][s1.length() + 1];
+        return f(s1, s2, 0, 0, s1.length(), dp, freqDp);
     }
 
-    boolean f(String s1, String s2, int i, int j, int n) {
+    boolean f(String s1, String s2, int i, int j, int n, boolean[][][] dp, boolean[][][] freqDp) {
+//        System.out.println("i:" + i + " j:" + j + " n:" + n);
+        if (dp[i][j][n]) {
+            return true;
+        }
         if (n == 1) {
             // 只有一个字母的时候，判断是否相等即可
+//            System.out.println("s1.charAt(i) :" + s1.charAt(i) + " s2.charAt(i):" + s2.charAt(i));
             return s1.charAt(i) == s2.charAt(j);
         }
-        String ss1 = s1.substring(i, i + n);
-        String ss2 = s2.substring(j, j + n);
+//        System.out.println("ss1:" + ss1 + " ss2:" + ss2);
         // 统计词频
-        if (!charFrqeuenceEqual(ss1, ss2)) {
+        if (!charFrqeuenceEqual(s1, s2, i, j, n, freqDp)) {
             return false;
         }
 
         boolean r = false;
         // 遍历切分点
-        for (int k = 1; k < n - 1; k++) {
+        for (int k = 1; k <= n - 1; k++) {
             // 比较两种情况
-            r |= f(ss1, ss2, 0, 0, k) && f(ss1, ss2, k, k, n - k) ||
-                    f(ss1, ss2, 0, n - k, k) && f(ss1, ss2, k, 0, n - k);
+//            System.out.println("k:" + k);
+            r |= f(s1, s2, i, j, k, dp, freqDp) && f(s1, s2, i + k, j + k, n - k, dp, freqDp) ||
+                    f(s1, s2, i, j + n - k, k, dp, freqDp) && f(s1, s2, i + k, j, n - k, dp, freqDp);
         }
+        dp[i][j][n] = r;
         return r;
     }
 
 
-    private boolean charFrqeuenceEqual(String ss1, String ss2) {
+    private boolean charFrqeuenceEqual(String s1, String s2, int i, int j, int n, boolean[][][] freqDp) {
+        if (freqDp[i][j][n]) {
+            return true;
+        }
+        String ss1 = s1.substring(i, i + n);
+        String ss2 = s2.substring(j, j + n);
         //比较两个字符串词频是否相等
         HashMap<Character, Integer> ss1Freq = new HashMap<>();
         HashMap<Character, Integer> ss2Freq = new HashMap<>();
-        for (int i = 0; i < ss1.length(); i++) {
-            char c1 = ss1.charAt(i);
-            char c2 = ss2.charAt(i);
+        for (int k = 0; k < ss1.length(); k++) {
+            char c1 = ss1.charAt(k);
+            char c2 = ss2.charAt(k);
             ss1Freq.put(c1, ss1Freq.getOrDefault(c1, 0) + 1);
             ss2Freq.put(c2, ss2Freq.getOrDefault(c2, 0) + 1);
         }
@@ -65,14 +79,61 @@ public class 扰乱字符串87 {
                 return false;
             }
         }
-
+        freqDp[i][j][n] = true;
         return true;
     }
 
+    public boolean isScrambleDp(String s1, String s2) {
+
+        // 定义 dp[i][j][n]表示s1、s2分别以下标i、下标j开始，长度为n的字符串是否为扰乱字符串
+        // 则递推关系有
+        // dp[i][j][n] = 所有的dp[i][j][k]&&dp[i+k][j+k][n-k]||dp[i][j+n-k][k]&&dp[i+n-k][j][k](1<=k<=n-1)
+        int n = s1.length();
+        boolean[][][] dp = new boolean[s1.length()][s1.length()][s1.length() + 1];
+        // 初始化先算出k=0的所有dp值
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                dp[i][j][1] = s1.charAt(i) == s2.charAt(j);
+            }
+//            System.out.println(Arrays.toString(dp[i]));
+        }
+        // 遍历算出所有的dp值
+        // 注意遍历顺序，应该是以从k=2遍历到k=n
+        for (int k = 2; k <= n; k++) {
+            for (int i = 0; i <= n-k; i++) {
+                for (int j = 0; j <= n-k; j++) {
+                    for (int h = 1; h < k; h++) {
+                        dp[i][j][k] |= dp[i][j][h] && dp[i + h][j + h][k - h]
+                                || dp[i][j + k - h][h] && dp[i + h][j][k - h];
+                    }
+                }
+            }
+        }
+//        for (int i = 0; i < n; i++) {
+//            for (int j = 0; j < n; j++) {
+//                System.out.println("i:" + i + ",j:" + j + Arrays.toString(dp[i][j]));
+//            }
+//        }
+
+
+        return dp[0][0][n];
+    }
+
     public static void main(String[] args) {
-        String s1 = "great";
-        String s2 = "rgeat";
-        System.out.println(new 扰乱字符串87().isScramble(s1, s2));
+//        String s1 = "eebaacbcbcadaaedceaaacadccd";
+//        String s1 = "great";
+//        String s2 = "eadcaacabaddaceacbceaabeccd";
+//        String s2 = "rgeat";
+//        String s1 = "AC";
+//        String s2 = "CA";
+        String s1 = "abcdbdacABCDE";
+        String s2 = "bdacabcdABCDC";
+        long s = System.currentTimeMillis();
+        System.out.println(System.currentTimeMillis());
+//        System.out.println(new 扰乱字符串87().isScramble(s1, s2));
+        System.out.println(new 扰乱字符串87().isScrambleDp(s1, s2));
+        System.out.println(System.currentTimeMillis());
+        System.out.println(System.currentTimeMillis() - s);
 //    boolean a = false;
 //    boolean b = false;
 //        System.out.println(a|b|false|false|true);
